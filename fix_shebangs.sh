@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
-
 # Usage: fix_shebangs.sh <staged-venv-path>
 # Example: ./fix_shebangs.sh /tmp/myapp-pkg/opt/myapp/venv
 
