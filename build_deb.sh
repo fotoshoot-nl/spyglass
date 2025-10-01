@@ -4,23 +4,25 @@
 VERSION="${1}"
 PKGNAME="spyglass"
 
-DEPENDS=(python3-libcamera python3-kms++ python3-picamera2)
+DEPENDS=(python3-libcamera python3-kms++ python3-picamera2 python3-av)
 
-TMP_VENV="$(mktemp -d /tmp/${PKGNAME}-venv.XXXXXX)"
+TMP_VENV="/opt/${PKGNAME}/venv"
 STAGING_DIR="$(mktemp -d /tmp/${PKGNAME}-pkg.XXXXXX)"
 VENV_DIR="${STAGING_DIR}/opt/${PKGNAME}/venv"
 BIN_DIR="${STAGING_DIR}/usr/bin"
+EXTERNAL_REPO="https://github.com/mryel00/spyglass"
 
 echo "Creating virtualenv in ${TMP_VENV}"
 python3 -m venv --system-site-packages "${TMP_VENV}"
 
 "${TMP_VENV}/bin/pip" install --upgrade pip setuptools wheel
+"${TMP_VENV}/bin/pip" config list
 
-echo "Installing requirements into venv"
-"${TMP_VENV}/bin/pip" install --no-cache-dir -r requirements.txt
-
-echo "Installing the package into the venv (pip install .)"
-"${TMP_VENV}/bin/pip" install --no-cache-dir .
+echo "Download external repository whl from : ${EXTERNAL_REPO}"
+# wget $(curl -s https://api.github.com/repos/mryel00/spyglass/releases/latest | grep browser_download_url | cut -d\" -f4  | egrep '.whl$')
+wget "https://docs.google.com/uc?export=download&id=1CWwL1o2ZIMSYR3djnEgHaWz_D9gKbRY-" -O spyglass-0.17.0-py3-none-any.whl
+echo "Installing whl into venv"
+"${TMP_VENV}/bin/pip" install --no-cache-dir --extra-index-url https://www.piwheels.org/simple *.whl
 
 echo "Cleaning up virtualenv to reduce size"
 "${TMP_VENV}/bin/pip" cache purge
@@ -41,8 +43,6 @@ mkdir -p "${VENV_DIR}" "${BIN_DIR}"
 
 echo "Copying virtualenv to staging"
 cp -a "${TMP_VENV}/." "${VENV_DIR}/"
-
-./fix_shebangs.sh "${VENV_DIR}"
 
 # Fix permissions in the staged venv so non-root users can run it:
 # - directories: 0755 (owner rwx, group/other rx)
